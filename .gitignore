@@ -1,0 +1,5 @@
+.env
+*.log
+node_modules/
+g2-plugin/node_modules/
+g2-plugin/dist/

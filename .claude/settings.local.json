@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:canfly.ai)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:hub.evenrealities.com)",
+      "Bash(gh api *)",
+      "Bash(python3 -c \"import sys,json; [print\\(f['name']\\) for f in json.load\\(sys.stdin\\)]\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npm install *)",
+      "Bash(npm search *)",
+      "Bash(pip install *)",
+      "Bash(pip3 install *)",
+      "Bash(python3 -m pip install beautifulsoup4 requests)",
+      "Bash(docker build *)",
+      "Bash(git add *)"
+    ]
+  }
+}

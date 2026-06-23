@@ -1,0 +1,22 @@
+{
+  "name": "hermes-g2-plugin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "pack": "evenhub pack",
+    "sim": "evenhub-simulator"
+  },
+  "dependencies": {
+    "@evenrealities/even_hub_sdk": ">=0.0.10"
+  },
+  "devDependencies": {
+    "@evenrealities/evenhub-cli": "latest",
+    "@evenrealities/evenhub-simulator": "latest",
+    "typescript": "~5.7.2",
+    "vite": "^5.4.2"
+  }
+}
