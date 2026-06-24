@@ -20,7 +20,19 @@
     </style>
   </head>
   <body>
-    <p>Hermes is running. Check the glasses display.</p>
+    <div id="log" style="font-size:13px;padding:12px;white-space:pre-wrap;word-break:break-all"></div>
+    <script>
+      const logEl = document.getElementById('log')
+      const _log = console.log.bind(console)
+      const _err = console.error.bind(console)
+      function append(prefix, args) {
+        logEl.textContent += prefix + [...args].map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ') + '\n'
+      }
+      console.log = (...a) => { _log(...a); append('', a) }
+      console.error = (...a) => { _err(...a); append('ERR ', a) }
+      window.onerror = (msg, src, line) => { append('CRASH ', [msg, line]) }
+      window.onunhandledrejection = e => { append('REJECT ', [String(e.reason)]) }
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
