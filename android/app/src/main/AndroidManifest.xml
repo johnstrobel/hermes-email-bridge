@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ── Network ─────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ── Telephony ───────────────────────────────────────────────── -->
+    <!-- READ_PHONE_STATE required for TelephonyManager.dataNetworkType on API < 30 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!-- ── Battery ─────────────────────────────────────────────────── -->
+    <!-- ACTION_BATTERY_CHANGED is a protected broadcast, no extra permission needed -->
+
+    <!-- ── Foreground service ──────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <!-- ── Background execution ────────────────────────────────────── -->
+    <!-- User must manually grant via Settings > Battery > Unrestricted for this app -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- ── Media session access ────────────────────────────────────── -->
+    <!-- MediaSessionManager.getActiveSessions() requires the app to hold a
+         NotificationListenerService. User grants this via
+         Settings > Notifications > Notification access. -->
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+
+    <application
+        android:label="Hermes Media Bridge"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.AppCompat"
+        android:allowBackup="false">
+
+        <!-- Entry activity — minimal; exists only to prompt permissions on first launch -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Foreground service that hosts the HTTP bridge -->
+        <service
+            android:name=".MediaBridgeService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="false" />
+
+        <!-- NotificationListenerService stub — required to call
+             MediaSessionManager.getActiveSessions(ComponentName).
+             User must grant access in Settings > Apps > Special app access >
+             Notification access. -->
+        <service
+            android:name=".HermesNotificationListener"
+            android:exported="true"
+            android:label="Hermes Media Bridge"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+    </application>
+
+</manifest>
