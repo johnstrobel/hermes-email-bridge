@@ -215,20 +215,24 @@ class MediaBridgeService : Service() {
 
     @Suppress("DEPRECATION")
     private fun registerTelephonyCallback() {
-        val tm = getSystemService(TelephonyManager::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val cb = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
-                override fun onCallStateChanged(state: Int) = onCallState(state)
+        try {
+            val tm = getSystemService(TelephonyManager::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val cb = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
+                    override fun onCallStateChanged(state: Int) = onCallState(state)
+                }
+                telephonyCallback = cb
+                tm.registerTelephonyCallback(mainExecutor, cb)
+            } else {
+                val listener = object : PhoneStateListener() {
+                    override fun onCallStateChanged(state: Int, phoneNumber: String?) =
+                        onCallState(state)
+                }
+                telephonyCallback = listener
+                tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE)
             }
-            telephonyCallback = cb
-            tm.registerTelephonyCallback(mainExecutor, cb)
-        } else {
-            val listener = object : PhoneStateListener() {
-                override fun onCallStateChanged(state: Int, phoneNumber: String?) =
-                    onCallState(state)
-            }
-            telephonyCallback = listener
-            tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE)
+        } catch (_: SecurityException) {
+            // READ_PHONE_STATE not granted — call state monitoring disabled, service continues
         }
     }
 
