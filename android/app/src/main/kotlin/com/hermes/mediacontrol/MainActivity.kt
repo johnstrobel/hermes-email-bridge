@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun allPermissionsGranted(): Boolean =
-        hasPhoneStatePermission() && hasNotificationAccess() && isBatteryOptimizationExempt()
+        hasPhoneStatePermission() && hasNotificationAccess()
 
     // ─────────────────────────────────────────────────────────────────────────
     // UI state sync
