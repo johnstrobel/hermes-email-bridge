@@ -270,8 +270,9 @@ class MediaBridgeService : Service() {
         // a YouTube video ends, or the user switches apps).
         mediaSessionManager.addOnActiveSessionsChangedListener({ controllers ->
             activeController?.unregisterCallback(mediaControllerCallback)
-            // getActiveSessions() returns sessions sorted most-recently-active first.
+            // Prefer a session with active playback state; fall back to most-recently-active.
             activeController = controllers?.firstOrNull { it.playbackState != null }
+                ?: controllers?.firstOrNull()
             activeController?.registerCallback(mediaControllerCallback)
             syncMediaState()
         }, listenerComponent)
@@ -279,13 +280,9 @@ class MediaBridgeService : Service() {
 
     private fun pickActiveController(): MediaController? =
         try {
-            mediaSessionManager
-                .getActiveSessions(listenerComponent)
-                .firstOrNull { it.playbackState != null }
+            val sessions = mediaSessionManager.getActiveSessions(listenerComponent)
+            sessions.firstOrNull { it.playbackState != null } ?: sessions.firstOrNull()
         } catch (e: SecurityException) {
-            // Notification listener permission not yet granted by the user.
-            // MediaBridgeService will still run; it just won't know which session is active
-            // until the user grants access in Settings > Apps > Notification access.
             null
         }
 

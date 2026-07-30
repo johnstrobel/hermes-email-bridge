@@ -22,9 +22,10 @@ class MediaBridgeHttpServer(port: Int) : NanoHTTPD(port) {
 
     override fun serve(session: IHTTPSession): Response {
         return when {
-            session.method == Method.OPTIONS                              -> corsPreflightResponse()
-            session.method == Method.GET  && session.uri == STATUS_PATH  -> handleStatus()
-            session.method == Method.POST && session.uri == COMMAND_PATH -> handleCommand(session)
+            session.method == Method.OPTIONS                               -> corsPreflightResponse()
+            session.method == Method.GET  && session.uri == STATUS_PATH   -> handleStatus()
+            session.method == Method.POST && session.uri == COMMAND_PATH  -> handleCommand(session)
+            session.method == Method.GET  && session.uri.startsWith(COMMAND_PATH) -> handleCommandGet(session)
             else -> newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not found")
                         .withCors()
         }
@@ -78,6 +79,21 @@ class MediaBridgeHttpServer(port: Int) : NanoHTTPD(port) {
                 .withCors()
         } catch (e: Exception) {
             serverError(e.message ?: "unknown error")
+        }
+    }
+
+    // ── GET /media/command?cmd=play_pause ─────────────────────────────────────
+
+    private fun handleCommandGet(session: IHTTPSession): Response {
+        val cmd = session.parms["cmd"] ?: ""
+        return if (cmd.isNotEmpty()) {
+            onCommand?.invoke(cmd)
+            newFixedLengthResponse(Response.Status.OK, MIME_JSON, """{"ok":true}""").withCors()
+        } else {
+            newFixedLengthResponse(
+                Response.Status.BAD_REQUEST, MIME_JSON,
+                """{"ok":false,"error":"missing cmd"}"""
+            ).withCors()
         }
     }
 
