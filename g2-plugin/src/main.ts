@@ -64,35 +64,23 @@ function parseNetworkType(netByte: number): string {
 
   let lastStatus: PhoneStatusResponse | null = null
 
+  // Keep display to 4 lines max — longer content triggers native text
+  // container scrolling which consumes scroll events before our handler sees them.
   function buildDisplay(status: PhoneStatusResponse | null): string {
-    if (!status) return 'Media Control\nNo connection to phone.'
-
-    const net = parseNetworkType(status.netByte)
-    const header = `Bat:${status.phoneBat}% | ${net} | Vol:${status.volume}%`
-
-    if (status.inCall) {
-      return `${header}\n\nIN CALL\n[Controls Suppressed]`
-    }
-
+    if (!status) return 'No connection to phone\n\nTap:Play  2x:Next  Up:Vol+  Dn:Vol-'
+    const net      = parseNetworkType(status.netByte)
     const stateStr = status.buffering ? 'Buffering' : (status.playing ? 'Playing' : 'Paused')
-    const trackLine = status.track
-      ? `${status.track}\n${status.artist || 'Unknown Artist'}`
-      : 'No Active Track'
-
-    return `${trackLine}\n${stateStr}  ${header}\n\nTap:Play/Pause  2x:Next`
+    const track    = status.track ? `${status.track} - ${status.artist || 'Unknown'}` : 'No Active Track'
+    const info     = `${stateStr} | Bat:${status.phoneBat}% | ${net} | Vol:${status.volume}%`
+    return `${track}\n${info}\n\nTap:Play  2x:Next  Up:Vol+  Dn:Vol-`
   }
 
   async function updateDisplay(): Promise<void> {
     const content = buildDisplay(lastStatus)
-    await bridge.textContainerUpgrade(
-      new TextContainerUpgrade({
-        containerID: 1,
-        containerName: 'main',
-        contentOffset: 0,
-        contentLength: content.length,
-        content,
-      })
-    )
+    await bridge.textContainerUpgrade(new TextContainerUpgrade({
+      containerID: 1, containerName: 'main',
+      contentOffset: 0, contentLength: content.length, content,
+    }))
   }
 
   async function pollStatus(): Promise<void> {
@@ -120,12 +108,17 @@ function parseNetworkType(netByte: number): string {
   pollStatus()
 
   bridge.onEvenHubEvent(async event => {
-    const type = event.sysEvent?.eventType ?? event.textEvent?.eventType ?? null
+    const sysType  = event.sysEvent?.eventType  ?? null
+    const textType = event.textEvent?.eventType ?? null
 
-    if (type === OsEventTypeList.CLICK_EVENT) {
+    if (sysType === null && textType === null) {
       await sendCommand('play_pause')
-    } else if (type === OsEventTypeList.DOUBLE_CLICK_EVENT) {
+    } else if (sysType === OsEventTypeList.DOUBLE_CLICK_EVENT) {
       await sendCommand('next')
+    } else if (textType === OsEventTypeList.SCROLL_TOP_EVENT) {
+      await sendCommand('vol_up')
+    } else if (textType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
+      await sendCommand('vol_down')
     }
   })
 })()
